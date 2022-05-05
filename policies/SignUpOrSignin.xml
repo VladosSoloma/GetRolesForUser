@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<TrustFrameworkPolicy
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://schemas.microsoft.com/online/cpim/schemas/2013/06"
+  PolicySchemaVersion="0.3.0.0"
+  TenantId="solomaorg.onmicrosoft.com"
+  PolicyId="B2C_1A_signup_signin"
+  PublicPolicyUri="http://solomaorg.onmicrosoft.com/B2C_1A_signup_signin"
+  DeploymentMode="Development"
+  UserJourneyRecorderEndpoint="urn:journeyrecorder:applicationinsights">
+  
+  <BasePolicy>
+    <TenantId>solomaorg.onmicrosoft.com</TenantId>
+    <PolicyId>B2C_1A_TrustFrameworkExtensions</PolicyId>
+  </BasePolicy>
+    <UserJourneys>
+    <UserJourney Id="SignUpOrSignIn">
+      <OrchestrationSteps>
+        <!-- get AppRoleAssignment -->
+        <OrchestrationStep Order="7" Type="ClaimsExchange">
+          <ClaimsExchanges>
+            <ClaimsExchange Id="GetUserAppRoleAssignment" TechnicalProfileReferenceId="GetUserAppRoleAssignment" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+
+        <OrchestrationStep Order="8" Type="SendClaims" CpimIssuerTechnicalProfileReferenceId="JwtIssuer" />
+      </OrchestrationSteps>
+      <ClientDefinition ReferenceId="DefaultWeb" />
+    </UserJourney>
+  </UserJourneys>
+  <RelyingParty>
+    <DefaultUserJourney ReferenceId="SignUpOrSignIn" />
+	<UserJourneyBehaviors>
+	  <JourneyInsights TelemetryEngine="ApplicationInsights" InstrumentationKey="8e08fb97-ba20-4649-aef4-7e5088f6e4ca" DeveloperMode="true" ClientEnabled="false" ServerEnabled="true" TelemetryVersion="1.0.0" />
+	</UserJourneyBehaviors>
+    <TechnicalProfile Id="PolicyProfile">
+      <DisplayName>PolicyProfile</DisplayName>
+      <Protocol Name="OpenIdConnect" />
+      <OutputClaims>
+ <OutputClaim ClaimTypeReferenceId="displayName" />
+    <OutputClaim ClaimTypeReferenceId="givenName" />
+    <OutputClaim ClaimTypeReferenceId="surname" />
+    <OutputClaim ClaimTypeReferenceId="signInName" />                                         <!-- LocalAccount: whatever used to sign in with-->
+    <OutputClaim ClaimTypeReferenceId="signInNames.emailAddress" PartnerClaimType="email" />  <!-- LocalAccount: email -->
+    <OutputClaim ClaimTypeReferenceId="email" />                                              <!-- Other IDP: email -->
+    <OutputClaim ClaimTypeReferenceId="roles" />        
+    <OutputClaim ClaimTypeReferenceId="objectId" PartnerClaimType="sub" />
+    <OutputClaim ClaimTypeReferenceId="identityProvider" />
+      </OutputClaims>
+      <SubjectNamingInfo ClaimType="sub" />
+    </TechnicalProfile>
+  </RelyingParty>
+</TrustFrameworkPolicy>
+
+

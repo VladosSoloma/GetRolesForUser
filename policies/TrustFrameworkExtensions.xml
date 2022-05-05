@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<TrustFrameworkPolicy 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  xmlns="http://schemas.microsoft.com/online/cpim/schemas/2013/06" 
+  PolicySchemaVersion="0.3.0.0" 
+  TenantId="solomaorg.onmicrosoft.com" 
+  PolicyId="B2C_1A_TrustFrameworkExtensions" 
+  PublicPolicyUri="http://solomaorg.onmicrosoft.com/B2C_1A_TrustFrameworkExtensions">
+  
+  <BasePolicy>
+    <TenantId>solomaorg.onmicrosoft.com</TenantId>
+    <PolicyId>B2C_1A_TrustFrameworkLocalization</PolicyId>
+  </BasePolicy>
+ <BuildingBlocks>
+<ClaimsSchema>
+    <ClaimType Id="roles">
+      <DisplayName>Comma delimited list of AppRoleAssignment names</DisplayName>
+      <DataType>stringCollection</DataType>
+      <UserInputType>Readonly</UserInputType>
+    </ClaimType>
+    <ClaimType Id="oldPassword">
+      <DisplayName>Old Password</DisplayName>
+      <DataType>string</DataType>
+      <UserHelpText>Enter your old password</UserHelpText>
+      <UserInputType>Password</UserInputType>
+    </ClaimType>
+</ClaimsSchema>
+  </BuildingBlocks>
+
+  <ClaimsProviders>
+  <ClaimsProvider>
+    <DisplayName>Local Account SignIn</DisplayName>
+    <TechnicalProfiles>
+      <TechnicalProfile Id="login-NonInteractive-PasswordChange">
+        <DisplayName>Local Account SignIn</DisplayName>
+        <InputClaims>
+          <InputClaim ClaimTypeReferenceId="oldPassword" PartnerClaimType="password" Required="true" />
+          </InputClaims>
+        <IncludeTechnicalProfile ReferenceId="login-NonInteractive" />
+      </TechnicalProfile>
+    </TechnicalProfiles>
+  </ClaimsProvider>
+  <ClaimsProvider>
+    <DisplayName>Local Account Password Change</DisplayName>
+    <TechnicalProfiles>
+      <TechnicalProfile Id="LocalAccountWritePasswordChangeUsingObjectId">
+        <DisplayName>Change password (username)</DisplayName>
+        <Protocol Name="Proprietary" Handler="Web.TPEngine.Providers.SelfAssertedAttributeProvider, Web.TPEngine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
+        <Metadata>
+          <Item Key="ContentDefinitionReferenceId">api.selfasserted</Item>
+        </Metadata>
+        <InputClaims>
+          <InputClaim ClaimTypeReferenceId="objectId" />
+        </InputClaims>
+        <OutputClaims>
+          <OutputClaim ClaimTypeReferenceId="oldPassword" Required="true" />
+          <OutputClaim ClaimTypeReferenceId="newPassword" Required="true" />
+          <OutputClaim ClaimTypeReferenceId="reenterPassword" Required="true" />
+        </OutputClaims>
+        <ValidationTechnicalProfiles>
+          <ValidationTechnicalProfile ReferenceId="login-NonInteractive-PasswordChange" />
+          <ValidationTechnicalProfile ReferenceId="AAD-UserWritePasswordUsingObjectId" />
+        </ValidationTechnicalProfiles>
+      </TechnicalProfile>
+    </TechnicalProfiles>
+  </ClaimsProvider>
+<ClaimsProvider>
+    <DisplayName>REST APIs</DisplayName>
+    <TechnicalProfiles>
+    <TechnicalProfile Id="GetUserAppRoleAssignment">
+        <DisplayName>Retrieves security groups assigned to the user</DisplayName>
+        <Protocol Name="Proprietary" Handler="Web.TPEngine.Providers.RestfulProvider, Web.TPEngine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
+        <Metadata>
+        <Item Key="ServiceUrl">https://getrolesforuser20220310103626.azurewebsites.net/api/Function1?code=CZHyVoY42jdQ6wTYUNl5GX/qmOXSDL9slGVHPWIQc1/yzIJjCPhF2g==</Item>
+        <Item Key="AuthenticationType">None</Item>
+        <Item Key="SendClaimsIn">Body</Item>
+        <Item Key="AllowInsecureAuthInProduction">true</Item>
+        <Item Key="IncludeClaimResolvingInClaimsHandling">true</Item>
+        </Metadata>
+        <InputClaims>
+        <InputClaim Required="true" ClaimTypeReferenceId="objectId" />
+        <!-- this B2C tenant id -->
+        <InputClaim ClaimTypeReferenceId="tenantId" DefaultValue="{Policy:TenantObjectId}" />
+        <!-- The App we're signing in to -->
+        <InputClaim ClaimTypeReferenceId="client_id" PartnerClaimType="clientId"  DefaultValue="{OIDC:ClientId}" />
+        <!-- specify that we want both roles and groups back -->
+        <InputClaim ClaimTypeReferenceId="scope" DefaultValue="roles" AlwaysUseDefaultValue="true" />
+        </InputClaims>
+        <OutputClaims>
+        <OutputClaim ClaimTypeReferenceId="roles" />
+        </OutputClaims>
+        <UseTechnicalProfileForSessionManagement ReferenceId="SM-Noop" />
+    </TechnicalProfile>
+    </TechnicalProfiles>
+</ClaimsProvider>
+
+    <ClaimsProvider>
+      <DisplayName>Local Account SignIn</DisplayName>
+      <TechnicalProfiles>
+         <TechnicalProfile Id="login-NonInteractive">
+          <Metadata>
+            <Item Key="client_id">ProxyIdentityExperienceFrameworkAppId</Item>
+            <Item Key="IdTokenAudience">IdentityExperienceFrameworkAppId</Item>
+          </Metadata>
+          <InputClaims>
+            <InputClaim ClaimTypeReferenceId="client_id" DefaultValue="619db6ee-ff82-4694-ad91-298eabcf82b3" />
+            <InputClaim ClaimTypeReferenceId="resource_id" PartnerClaimType="resource" DefaultValue="409e0487-8feb-4365-9109-7ebbd3e27e1c" />
+          </InputClaims>
+		  <OutputClaims>
+		  </OutputClaims>
+        </TechnicalProfile>
+      </TechnicalProfiles>
+    </ClaimsProvider>
+  </ClaimsProviders>
+  <UserJourneys>
+  <UserJourney Id="PasswordChange">
+    <OrchestrationSteps>
+      <OrchestrationStep Order="1" Type="ClaimsProviderSelection" ContentDefinitionReferenceId="api.signuporsignin">
+        <ClaimsProviderSelections>
+          <ClaimsProviderSelection TargetClaimsExchangeId="LocalAccountSigninEmailExchange" />
+        </ClaimsProviderSelections>
+      </OrchestrationStep>
+      <OrchestrationStep Order="2" Type="ClaimsExchange">
+        <ClaimsExchanges>
+          <ClaimsExchange Id="LocalAccountSigninEmailExchange" TechnicalProfileReferenceId="SelfAsserted-LocalAccountSignin-Email" />
+        </ClaimsExchanges>
+      </OrchestrationStep>
+      <OrchestrationStep Order="3" Type="ClaimsExchange">
+        <ClaimsExchanges>
+          <ClaimsExchange Id="NewCredentials" TechnicalProfileReferenceId="LocalAccountWritePasswordChangeUsingObjectId" />
+        </ClaimsExchanges>
+      </OrchestrationStep>
+      <OrchestrationStep Order="4" Type="ClaimsExchange">
+        <ClaimsExchanges>
+          <ClaimsExchange Id="AADUserReadWithObjectId" TechnicalProfileReferenceId="AAD-UserReadUsingObjectId" />
+        </ClaimsExchanges>
+      </OrchestrationStep>
+      <OrchestrationStep Order="5" Type="SendClaims" CpimIssuerTechnicalProfileReferenceId="JwtIssuer" />
+    </OrchestrationSteps>
+    <ClientDefinition ReferenceId="DefaultWeb" />
+  </UserJourney>
+</UserJourneys>
+</TrustFrameworkPolicy>
